@@ -2,6 +2,8 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 import openai
+import openai
+from openai import OpenAI
 import os
 import dotenv
 # Load environment variables from .env file
@@ -23,7 +25,7 @@ app.add_middleware(
 )
 
 # Load API key from environment variable
-openai.api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key = os.getenv("OPENAI_API_KEY"))
 
 # ---------------------------
 # Request & Response Models
@@ -40,7 +42,7 @@ class CompletionResponse(BaseModel):
 @app.post("/generate", response_model=CompletionResponse)
 def generate_response(req: PromptRequest):
     try:
-        completion = openai.ChatCompletion.create(
+        completion = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
@@ -52,12 +54,13 @@ def generate_response(req: PromptRequest):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
+
 
 @app.get("/getans", response_model=CompletionResponse)
 def get_ans():
     try:
-        completion = openai.ChatCompletion.create(
+        completion = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
